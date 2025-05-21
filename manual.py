@@ -6,7 +6,7 @@ face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_fronta
 
 # Create a window and trackbars
 cv2.namedWindow('Face Shape Detector')
-cv2.createTrackbar('Shape', 'Face Shape Detector', 0, 6, lambda x: None)
+cv2.createTrackbar('Shape', 'Face Shape Detector', 0, 5, lambda x: None)
 cv2.createTrackbar('Opacity', 'Face Shape Detector', 50, 100, lambda x: None)
 cv2.createTrackbar('Thickness', 'Face Shape Detector', 2, 10, lambda x: None)
 cv2.createTrackbar('Width', 'Face Shape Detector', 0, 150, lambda x: None)
