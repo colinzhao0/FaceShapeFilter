@@ -11,24 +11,49 @@ predictor = dlib.shape_predictor("resources/shape_predictor_68_face_landmarks.da
 def distance(p1, p2):
     return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
 
+
 def get_face_shape(landmarks):
-    cheek_width = distance(landmarks[1], landmarks[15])
-    face_height = distance(landmarks[8], landmarks[27])
-    jaw_width = distance(landmarks[4], landmarks[12])
-    forehead_width = distance(landmarks[17], landmarks[26])
+    # Key landmarks indices (dlib's 68-point model)
+    LEFT_CHEEK = 1
+    RIGHT_CHEEK = 15
+    CHIN = 8
+    FOREHEAD = 27
+    JAW_LEFT = 4
+    JAW_RIGHT = 12
+    LEFT_TEMPLE = 17
+    RIGHT_TEMPLE = 26
 
+    # Calculate widths and heights
+    cheek_width = distance(landmarks[LEFT_CHEEK], landmarks[RIGHT_CHEEK])
+    face_height = distance(landmarks[CHIN], landmarks[FOREHEAD])
+    jaw_width = distance(landmarks[JAW_LEFT], landmarks[JAW_RIGHT])
+    forehead_width = distance(landmarks[LEFT_TEMPLE], landmarks[RIGHT_TEMPLE])
+
+    # Ratios
     ratio_width_height = cheek_width / face_height
+    ratio_jaw_cheek = jaw_width / cheek_width
+    ratio_forehead_cheek = forehead_width / cheek_width
 
-    if ratio_width_height > 0.9:
-        return "round"
-    elif ratio_width_height < 0.7:
-        return "oblong"
-    elif jaw_width / cheek_width > 0.9:
-        return "square"
-    elif forehead_width > cheek_width * 0.95 and jaw_width < cheek_width * 0.85:
+    # Shape determination (prioritize most distinct features first)
+    # 1. Heart-shaped: Narrow jaw + wide forehead
+    if ratio_forehead_cheek > 0.95 and ratio_jaw_cheek < 0.85:
         return "heart"
-    else:
-        return "oval"
+    
+    # 2. Square: Jaw width ≈ cheek width + angular jaw (check chin landmarks)
+    print(ratio_jaw_cheek)
+    if ratio_jaw_cheek > 0.86:  # Almost straight line
+        return "square"
+    
+    # 3. Round: Width ≈ Height
+    if 0.85 <= ratio_width_height <= 1.1:
+        return "round"
+    
+    # 4. Oblong: Height >> Width
+    if ratio_width_height < 0.75:
+        return "oblong"
+    
+    # 5. Default to oval
+    return "oval"
 
 #Read Image
 def image_to_shape(path):
@@ -52,24 +77,6 @@ def image_to_shape(path):
         
         return(get_face_shape(landmarks_list))
 
-# Iterate through image files to test
-folder_path = Path('faces/round')
-
-total = 0
-count = 0
-
-for img_path in folder_path.glob('*'):
-    if img_path.suffix.lower() in ['.png', '.jpg', '.jpeg', '.gif', '.bmp']:
-        try:
-            print(f"Processing: {img_path.name}")
-            shape = image_to_shape(str(img_path))
-            if shape == "round":
-                count+=1
-            total += 1
-            
-            print(shape)
-            
-        except Exception as e:
-            print(f"Error opening {img_path.name}: {e}")
-
-print(f"{count} out of {total} correct")
+#Run functions on image
+path = 'resources/face.jpg' 
+print(image_to_shape(path))
